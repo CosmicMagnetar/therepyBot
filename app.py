@@ -42,6 +42,32 @@ def chat():
         if user_input.lower() in ["bye", "exit", "quit"]:
             return jsonify({"response": "It was nice talking to you. Take care! 💛"})
 
+        messages = [system_message, {"role": "user", "content": user_input}]
+
+        try:
+            completion = client.chat.completions.create(
+                model="x-ai/grok-4-fast:free",
+                messages=messages
+            )
+            bot_response = completion.choices[0].message.content
+        except Exception as api_err:
+            print("OpenRouter API error:", api_err)
+            bot_response = "Sorry, I'm having trouble connecting to the AI service right now."
+
+        return jsonify({"response": bot_response})
+
+    except Exception as e:
+        print("Server error:", e)
+        return jsonify({"error": "An unexpected error occurred."}), 500
+
+    try:
+        user_input = request.json.get("message", "").strip()
+        if not user_input:
+            return jsonify({"error": "No message provided"}), 400
+
+        if user_input.lower() in ["bye", "exit", "quit"]:
+            return jsonify({"response": "It was nice talking to you. Take care! 💛"})
+
         messages = [
             system_message,
             {"role": "user", "content": user_input}
