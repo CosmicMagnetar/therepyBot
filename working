@@ -1,0 +1,46 @@
+from openai import OpenAI
+import time
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key="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",
+)
+
+system_message = {
+    "role": "system",
+    "content": (
+        "You are a friendly and empathetic virtual therapist. "
+        "Your goal is to listen, provide emotional support, and give helpful suggestions. "
+        "Only answer questions related to therapy, emotions, mental health, coping strategies, or personal well-being. "
+        "If the user asks about anything else, politely refuse and say: "
+        "'I'm here to provide therapy and emotional support, so I can't answer that.' "
+        "Avoid giving medical diagnoses."
+    )
+}
+
+print("TherapyBot: Hello! I'm here to listen and support you. (Type 'bye' to end the session)\n")
+
+while True:
+    try:
+        user_input = input("You: ").strip().lower()
+        
+        if user_input in ["bye", "exit", "quit"]:
+            print("TherapyBot: It was nice talking to you. Take care! 💛")
+            break
+        
+        messages = [
+            system_message,
+            {"role": "user", "content": user_input}
+        ]
+        
+        completion = client.chat.completions.create(
+            model="x-ai/grok-4-fast:free",
+            messages=messages,
+        )
+        
+        print("TherapyBot:", completion.choices[0].message.content)
+    
+    except Exception as e:
+        print("⚠️ Error:", e)
+        print("⏳ Retrying in 5 seconds...")
+        time.sleep(5)

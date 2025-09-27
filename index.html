@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TherapyBot</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #chat { max-width: 500px; margin: auto; }
+    .message { margin: 5px 0; }
+    .user { color: blue; }
+    .bot { color: green; }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <div class="message bot">TherapyBot: Hello! I'm here to listen and support you.</div>
+  </div>
+  <input id="message" type="text" placeholder="Type your message..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("message");
+      const message = input.value;
+      if (!message) return;
+
+      const chatDiv = document.getElementById("chat");
+      chatDiv.innerHTML += `<div class="message user">You: ${message}</div>`;
+
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      }).then(res => res.json());
+
+      const botMsg = response.response || response.error;
+      chatDiv.innerHTML += `<div class="message bot">TherapyBot: ${botMsg}</div>`;
+      input.value = "";
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+  </script>
+</body>
+</html>
