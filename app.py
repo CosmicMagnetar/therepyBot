@@ -1,11 +1,18 @@
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
 app = Flask(__name__)
+
+# Configure CORS - Allow requests from your frontend
+CORS(app, origins=[
+    "http://localhost:3000",  # Next.js dev server
+    "http://localhost:3001",  # Alternative port
+    "*"  # Allow all origins (use only for development)
+])
 
 # Use environment variable for security
 client = OpenAI(
@@ -30,6 +37,15 @@ system_message = {
 @app.route("/")
 def index():
     return send_from_directory(os.path.dirname(__file__), "index.html")
+
+# Handle OPTIONS requests for CORS preflight
+@app.route("/chat", methods=["OPTIONS"])
+def handle_options():
+    response = jsonify({})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+    return response
 
 # Chat endpoint
 @app.route("/chat", methods=["POST"])
@@ -58,6 +74,15 @@ def chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Alternative: Manual CORS headers (if flask-cors is not available)
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 if __name__ == "__main__":
     # 0.0.0.0 allows external access, PORT is set by hosting platform
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host="0.0.0.0", port=port, debug=True)
